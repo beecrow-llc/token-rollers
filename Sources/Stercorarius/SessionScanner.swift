@@ -36,15 +36,18 @@ struct SessionScanner {
         }
         var records: [String: SessionRecord] = [:]
         for file in files where file.pathExtension == "json" {
-            do {
-                let data = try Data(contentsOf: file)
-                records[file.deletingPathExtension().lastPathComponent] =
-                    try JSONDecoder().decode(SessionRecord.self, from: data)
-            } catch {
-                logger.debug(
-                    "Skipping \(file.path, privacy: .public): \(error.localizedDescription)")
-            }
+            records[file.deletingPathExtension().lastPathComponent] = record(at: file)
         }
         return records
+    }
+
+    /// The record in `file`, or nil (logged) when it is missing or malformed.
+    static func record(at file: URL) -> SessionRecord? {
+        do {
+            return try JSONDecoder().decode(SessionRecord.self, from: Data(contentsOf: file))
+        } catch {
+            logger.debug("Skipping \(file.path, privacy: .public): \(error.localizedDescription)")
+            return nil
+        }
     }
 }

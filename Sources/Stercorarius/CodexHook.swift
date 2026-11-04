@@ -28,6 +28,8 @@ struct CodexHook {
 
     /// Entry point for `Stercorarius codex-hook <action>`; returns the exit status, always 0.
     static func execute(arguments: [String]) -> Int32 {
+        // Diagnostics are best effort: a closed stderr must not kill the hook with SIGPIPE.
+        signal(SIGPIPE, SIG_IGN)
         guard let action = arguments.first.flatMap(Action.init(rawValue:)) else {
             report("usage: Stercorarius codex-hook busy|idle")
             return 0
@@ -39,8 +41,23 @@ struct CodexHook {
             ?? home.appending(path: ".codex", directoryHint: .isDirectory)
         let hook = CodexHook(
             stateDirectory: Agent.codex.sessionDirectory(home: home), codexHome: codexHome)
-        hook.run(action, input: (try? FileHandle.standardInput.readToEnd()) ?? Data())
+        hook.run(action, input: readPayload())
         return 0
+    }
+
+    /// Reads `descriptor` until it holds one complete JSON value or reaches end of file, so a
+    /// caller that keeps the pipe open after writing the payload cannot hang the hook.
+    static func readPayload(from descriptor: Int32 = STDIN_FILENO) -> Data {
+        var payload = Data()
+        var buffer = [UInt8](repeating: 0, count: 65_536)
+        while true {
+            let count = read(descriptor, &buffer, buffer.count)
+            if count < 0, errno == EINTR { continue }
+            guard count > 0 else { return payload }
+            payload.append(contentsOf: buffer[..<count])
+            // An incomplete payload fails to parse; keep reading until it is whole.
+            if (try? JSONSerialization.jsonObject(with: payload)) != nil { return payload }
+        }
     }
 
     /// Records `action` for the session described by the hook JSON in `input`.
@@ -99,7 +116,10 @@ struct CodexHook {
     /// Drops records whose Codex process is gone (killed or crashed without firing a hook).
     private func removeDeadRecords() {
         for (id, record) in SessionScanner.records(in: stateDirectory) where !isAlive(record.pid) {
-            remove(stateDirectory.appending(path: "\(id).json"))
+            let file = stateDirectory.appending(path: "\(id).json")
+            // Another hook may have just rewritten this record for a resumed session.
+            guard SessionScanner.record(at: file) == record else { continue }
+            remove(file)
         }
     }
 
@@ -114,6 +134,8 @@ struct CodexHook {
     }
 
     private static func report(_ message: String) {
-        FileHandle.standardError.write(Data("stercorarius codex-hook: \(message)\n".utf8))
+        // Best effort: when stderr is gone there is nowhere left to report the failure.
+        let line = Data("stercorarius codex-hook: \(message)\n".utf8)
+        try? FileHandle.standardError.write(contentsOf: line)
     }
 }
