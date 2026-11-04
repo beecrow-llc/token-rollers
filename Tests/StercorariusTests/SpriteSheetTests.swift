@@ -73,18 +73,20 @@ import UniformTypeIdentifiers
         }
     }
 
-    /// A 7×4 atlas: frame "a" is an opaque 3×4 block at x 0...2; frame "b" at x 4...6 has one
-    /// opaque pixel in its top-left corner and `renderOffsetPx` (1, 2). Plays "b", then "a".
+    /// A 7×9 atlas (top-left origin). Frame "a" is an opaque 3×4 block at x 0...2, y 0...3.
+    /// Frame "b" sits lower, at x 4...6, y 5...8, with one opaque pixel in its top-left corner
+    /// and `renderOffsetPx` (1, 2). A decoy pixel at (5, 1) shows up if "b" is cut from the
+    /// wrong rows. Plays "b", then "a".
     private func writeTwoFrameSheet() throws {
         let block = (0..<3).flatMap { x in (0..<4).map { y in (x, y) } }
-        try writeAtlas(width: 7, height: 4, opaque: block + [(4, 0)])
+        try writeAtlas(width: 7, height: 9, opaque: block + [(4, 5), (5, 1)])
         try writeMetadata(
             """
             {
               "frames": {
                 "a": {"frame": {"x": 0, "y": 0, "w": 3, "h": 4}, "durationMs": 100,
                       "renderOffsetPx": {"x": 0, "y": 0}},
-                "b": {"frame": {"x": 4, "y": 0, "w": 3, "h": 4}, "durationMs": 250,
+                "b": {"frame": {"x": 4, "y": 5, "w": 3, "h": 4}, "durationMs": 250,
                       "renderOffsetPx": {"x": 1, "y": 2}}
               },
               "animations": {"move_right": {"frames": ["b", "a"]}},

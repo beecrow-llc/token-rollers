@@ -5,9 +5,10 @@ import Testing
 
 @Suite struct PassPlannerTests {
     private let sprite = CGSize(width: 200, height: 100)
-    // A 1000×800 display right of the main one, with a 30 pt menu bar and a 70 pt Dock.
-    private let screen = CGRect(x: 1440, y: 0, width: 1000, height: 800)
-    private let visible = CGRect(x: 1440, y: 70, width: 1000, height: 700)
+    // A 1000×800 display up and to the right of the main one, with a 30 pt menu bar and a
+    // 70 pt Dock. Its non-zero origin checks the conversion to window coordinates.
+    private let screen = CGRect(x: 1440, y: 1117, width: 1000, height: 800)
+    private let visible = CGRect(x: 1440, y: 1187, width: 1000, height: 700)
 
     private func plan(
         leftward: Bool, height: CGFloat, progress: CGFloat = 0, sprite: CGSize? = nil

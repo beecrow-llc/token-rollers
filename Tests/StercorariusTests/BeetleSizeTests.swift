@@ -3,15 +3,18 @@ import Testing
 
 @testable import Stercorarius
 
-@Suite final class BeetleSizeTests {
-    private let suiteName = "stercorarius-tests-\(UUID().uuidString)"
+/// Serialized because the tests share one defaults suite; a fixed name keeps them from leaving a
+/// new plist in ~/Library/Preferences on every run.
+@Suite(.serialized) final class BeetleSizeTests {
+    private static let suiteName = "com.jamg.Stercorarius.tests"
     private let defaults: UserDefaults
 
     init() throws {
-        defaults = try #require(UserDefaults(suiteName: suiteName))
+        defaults = try #require(UserDefaults(suiteName: Self.suiteName))
+        defaults.removePersistentDomain(forName: Self.suiteName)
     }
 
-    deinit { defaults.removePersistentDomain(forName: suiteName) }
+    deinit { defaults.removePersistentDomain(forName: Self.suiteName) }
 
     @Test func defaultsToHalfSize() {
         #expect(BeetleSize.saved(in: defaults) == .half)

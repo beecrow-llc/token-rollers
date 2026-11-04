@@ -26,6 +26,26 @@ import Testing
         #expect(Processes.ancestor(of: getpid(), executablePrefix: "no-such-program-zz") == nil)
     }
 
+    @Test func ancestorWalksPastIntermediateProcesses() throws {
+        // sh starts sleep in the background and prints its PID: sleep -> sh -> this process.
+        let shell = Process()
+        shell.executableURL = URL(filePath: "/bin/sh")
+        shell.arguments = ["-c", "/bin/sleep 30 & echo $!; wait"]
+        let output = Pipe()
+        shell.standardOutput = output
+        try shell.run()
+        let line = String(decoding: output.fileHandleForReading.availableData, as: UTF8.self)
+        let sleeper = try #require(Int32(line.trimmingCharacters(in: .whitespacesAndNewlines)))
+        defer {
+            kill(sleeper, SIGTERM)
+            shell.waitUntilExit()
+        }
+        let path = try #require(Processes.executablePath(of: getpid()))
+        let ownName = try #require(path.split(separator: "/").last).lowercased()
+
+        #expect(Processes.ancestor(of: sleeper, executablePrefix: ownName) == getpid())
+    }
+
     @Test func isAliveRequiresTheAgentNameInTheExecutablePath() throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
