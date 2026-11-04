@@ -56,14 +56,16 @@ Codex desktop threads (ChatGPT.app) and Codex TUI sessions run inside shared, lo
 
 | Codex event | Command | Effect |
 | --- | --- | --- |
-| `UserPromptSubmit` | `<app>/Contents/MacOS/Stercorarius codex-hook busy` | write `~/.stercorarius/codex/<session_id>.json` |
-| `Stop`, `Interrupt`, `SessionEnd` | `<app>/Contents/MacOS/Stercorarius codex-hook idle` | delete that file |
+| `UserPromptSubmit` | `'<app>/Contents/MacOS/Stercorarius' codex-hook busy` | write `~/.stercorarius/codex/<session_id>.json` |
+| `Stop`, `Interrupt`, `SessionEnd` | `'<app>/Contents/MacOS/Stercorarius' codex-hook idle` | delete that file |
 
-`<app>` is the absolute path of the installed bundle, `~/Applications/Stercorarius.app`.
+`<app>` is the absolute path of the installed bundle, `~/Applications/Stercorarius.app`. It is
+single-quoted because Codex runs the command through a shell.
 
 The `codex-hook` subcommand lives in the app binary:
 
-1. Reads the hook JSON from stdin and uses `session_id`, `cwd`, and `agent_id`.
+1. Reads stdin until it holds one complete JSON value or reaches end of file, so a caller that
+   keeps stdin open cannot hang it. Uses `session_id`, `cwd`, and `agent_id`.
 2. Ignores payloads that carry `agent_id`: subagent turns reuse the root `session_id`.
 3. Ignores Codex's internal memory-consolidation session (`cwd` equals `$CODEX_HOME/memories`,
    default `~/.codex/memories`). It fires `UserPromptSubmit` but never `Stop`.
@@ -72,9 +74,11 @@ The `codex-hook` subcommand lives in the app binary:
    name starts with `codex`, then atomically writes `{"pid": <that pid>, "status": "busy"}`. If no
    such ancestor exists, it writes nothing.
 6. `idle`: deletes the session's file if present.
-7. On every run, deletes files in its state directory whose PID is no longer alive.
+7. On every run, deletes files in its state directory whose PID is no longer alive. It re-reads
+   each record just before deleting it, so a record that a concurrent hook rewrote survives.
 8. Never prints to stdout and always exits 0. Codex injects `UserPromptSubmit` stdout into the model
-   context, and exit code 2 would block the user's prompt. Diagnostics go to stderr.
+   context, and exit code 2 would block the user's prompt. Diagnostics go to stderr on a
+   best-effort basis: SIGPIPE is ignored and failed writes are dropped.
 
 The Codex record format is the subset of Claude's registry format that the scanner reads, so one
 decoder handles both directories.
@@ -90,7 +94,8 @@ this machine: `…/claude-code-darwin-arm64/claude`, `…/claude-code/bin/claude
 
 ### Polling
 
-The app scans both directories once per second. A missing directory means no sessions.
+The app scans both directories once per second. The timer runs in the run loop's common modes, so
+polling continues while the status menu is open. A missing directory means no sessions.
 
 ## Rendering
 
@@ -135,7 +140,11 @@ Codex uses `chatgpt-codex.{png,json}`.
   - Native size is frame pixels ÷ `pixelRatio` = 221 pt, which is 1 atlas pixel per Retina pixel.
 - Beetles are drawn at 50% (default), 75% or 100% of the native size. The menu's Beetle Size
   submenu sets it for all beetles at once, and the choice is saved in user defaults
-  (`beetleScale`). Downscaled frames use trilinear filtering.
+  (`beetleScale`). A change restarts every beetle at a random point, sized and routed for the new
+  size. Downscaled frames use trilinear filtering.
+- The app loads the resource bundle that sits next to its executable (`Contents/Resources` in the
+  .app). SwiftPM's generated `Bundle.module` is only the fallback (tests), because in an .app it
+  would resolve to the absolute path of the repository's `.build` directory.
 - If a sprite resource is missing or invalid, the app shows an alert with the error and quits.
 
 ## App shell
@@ -149,15 +158,20 @@ Codex uses `chatgpt-codex.{png,json}`.
 
 `make install`:
 
-1. Builds in release mode, assembles `Stercorarius.app` (signed with a Developer ID identity if one
-   exists, otherwise ad-hoc), and copies it into `~/Applications/`.
+1. Builds in release mode, assembles `Stercorarius.app` (signed with the first matching
+   Developer ID identity, picked by SHA-1, otherwise ad-hoc), and copies it into `~/Applications/`.
 2. Edits `$CODEX_HOME/hooks.json` (default `~/.codex/hooks.json`) with `/usr/bin/jq`:
-   - Backs the file up to `hooks.json.stercorarius-<timestamp>.bak` before any change.
+   - Backs the file up to `hooks.json.stercorarius-<timestamp>-<pid>.bak` before any change.
    - Touches only the `.hooks.<Event>` arrays and never adds other top-level keys. Codex rejects
      the entire file if it has an unknown top-level key, which would also disable Superset's hooks.
-   - Appends its groups at the end of each array. Codex trust keys depend on array position, so
-     inserting earlier would send existing trusted hooks back to review.
-   - Is idempotent: if all four commands are already present, the file stays byte-identical.
+   - Recognises its own handlers by their exact command shape (a single-quoted path ending in
+     `/Stercorarius`, then `codex-hook busy|idle`) and never touches look-alikes.
+   - Rewrites its own handlers in place (for example after the app moved) and appends missing
+     ones at the end of each array. Codex trust keys depend on array position, so other hooks
+     never move.
+   - Is idempotent: when nothing changes, the file stays byte-identical.
+   - Treats a missing or empty file as `{}`, edits the target of a symlinked file, rejects a binary
+     path that contains a single quote, and fails without touching the file on invalid JSON.
    - Writes a temp file, validates it with `jq`, then moves it over the original.
 3. Launches the app and prints the manual steps:
    - Trust the hooks once, via the Codex TUI review dialog or `/hooks`, or ChatGPT.app
@@ -168,8 +182,10 @@ Codex uses `chatgpt-codex.{png,json}`.
 `make uninstall`:
 
 - Quits the app.
-- Removes Stercorarius handlers, and any groups or arrays left empty, from `hooks.json` after taking
-  a backup.
+- Removes Stercorarius handlers, and only the groups and arrays that this leaves empty, from
+  `hooks.json` after taking a backup. Stops with an error, before anything is moved to the Trash,
+  if `hooks.json` cannot be parsed.
+- Prints that loaded Codex threads keep calling the removed hooks until they are restarted.
 - Moves the app and `~/.stercorarius` to the Trash.
 
 `~/.claude` is never modified.
@@ -178,18 +194,22 @@ Codex uses `chatgpt-codex.{png,json}`.
 
 - Swift Testing unit tests:
   - Scanner: busy, idle, waiting, malformed JSON, dead PID, ignored non-`.json` files.
-  - `codex-hook`: filters, `session_id` validation, atomic write, idle delete, dead-entry cleanup,
-    exit code.
-  - Process helpers: executable path and parent lookup.
-  - Sprite loader: a synthetic atlas with a known offset, plus the real bundled pack.
-  - Pass planner geometry (including a random start point) and keyframe timing.
+  - `codex-hook`: filters, `session_id` validation, idle delete, dead-entry cleanup (including a
+    record rewritten during cleanup), stdin that stays open, exit code.
+  - Process helpers: executable path, parent lookup, ancestor walk past an intermediate process.
+  - Sprite loader: a synthetic atlas with a frame below the top row and a known offset, plus the
+    real bundled pack.
+  - Pass planner geometry (including a random start point and a display with a non-zero origin)
+    and keyframe timing.
   - Beetle size: default, saved choice, unknown saved value, menu titles.
 - A shell test runs the hooks installer against fixture `hooks.json` files in a temporary
   `CODEX_HOME`. It checks:
-  - groups are appended at the end and existing groups and keys are untouched;
-  - a second install is byte-identical;
-  - uninstall round-trips to the original;
-  - a missing file is handled.
+  - groups are appended at the end; existing groups, keys and a look-alike command are untouched;
+  - the backup holds the original, and the generated command runs through a shell even with a
+    space in the binary path;
+  - a second install is byte-identical; a reinstall from a new path rewrites the commands in place;
+  - uninstall round-trips to the original, keeping its empty group and empty array;
+  - missing, empty, symlinked and invalid files, a path with a single quote, and no temp files left.
 - Lint with zero warnings: `swift build` with warnings as errors, `swiftlint --strict`,
   `swift format lint --strict`, `shellcheck`, `shfmt -d`.
 - Manual end-to-end checks:
@@ -220,6 +240,7 @@ Sources/Stercorarius/
   main.swift                  # `codex-hook` subcommand or app launch
   AppDelegate.swift           # status item, 1 s poll, wiring
   Agent.swift                 # agent enum, record decoding
+  BeetleSize.swift            # Beetle Size choices, saved in user defaults
   SessionScanner.swift
   CodexHook.swift
   Processes.swift             # proc_pidpath, parent lookup, liveness

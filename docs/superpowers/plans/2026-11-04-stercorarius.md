@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Status:** executed on 2026-11-04. Where the code differs from the snippets below, the repository is authoritative: lint-driven tweaks, plus two user requests added during implementation, a random start point for each beetle (`PassPlanner.plan(progress:)`) and the Beetle Size menu (`BeetleSize.swift`).
+
 **Goal:** A macOS menu-bar app that shows one animated dung beetle per Claude Code or Codex session while that session is working.
 
 **Architecture:** A 1 s poll reads Claude Code's own session registry (`~/.claude/sessions/*.json`) and the Codex state directory (`~/.stercorarius/codex/*.json`, written by the app binary's `codex-hook` subcommand that Codex hooks call). One transparent, click-through overlay window per display hosts a `CALayer` per working session; Core Animation plays the walk cycle and moves the layer across the display.
