@@ -1,7 +1,29 @@
-# Stercorarius
+# Token Rollers
 
-A macOS menu-bar app that sends a dung beetle rolling across your screens for every Claude Code or
-Codex session that is working right now. (*Geotrupes stercorarius* is the dor beetle.)
+> Somebody has to roll it.
+
+Every day you hand your coding agents the stuff nobody else wants to touch: the 4,000-line
+`utils.js`, the migration that "should only take a minute", the ticket that just says *make it
+work*. Claude Code and Codex quietly pack it into a neat ball and push it somewhere better.
+
+**Stercorarius**, the macOS menu-bar app in this repository, finally gives them some credit.
+While an agent session is working, a dung beetle rolls its ball across your screen: one beetle
+per busy session. When the session goes idle, its beetle fades out and goes home.
+
+- **One beetle:** an agent is earning its tokens.
+- **Five beetles:** congratulations, you are a manager now.
+- **Ten beetles:** drink some water and ask yourself whether "just one more agent" was wise.
+- **No beetles:** everyone is done, or you forgot to trust the Codex hooks.
+
+The copper beetle works for Claude Code, the dark green one for Codex. Neither will tell you
+what is in the ball.
+
+## Why dung beetles?
+
+Dung beetles roll loads many times their own weight, some of them steer by the Milky Way, and
+not one of them has ever asked for clearer requirements. The app is named after *Geotrupes
+stercorarius*, the dor beetle. Like the real thing, our beetles walk backwards and push with
+their hind legs. Respect the craft.
 
 ## How it works
 
@@ -16,6 +38,12 @@ Codex session that is working right now. (*Geotrupes stercorarius* is the dor be
   crosses a random display at a random height: left to right, then mirrored right to left. It
   stays above all windows on every Space and lets clicks through. When the session stops
   working, its beetle fades out.
+
+## Requirements
+
+- macOS 15 or later, which also ships the `jq` and `trash` that the scripts use.
+- Xcode or a Swift 6 toolchain to build.
+- For `make lint` only: SwiftLint, shellcheck and shfmt (`brew install swiftlint shellcheck shfmt`).
 
 ## Install
 
@@ -63,6 +91,20 @@ make app     # .build/Stercorarius.app
 swift run Stercorarius
 ```
 
+The design is written up in `docs/superpowers/specs/2026-11-04-stercorarius-design.md`.
+
+## FAQ
+
+**Is this a comment on the quality of my codebase?**
+The beetles are far too professional to say.
+
+**Do the beetles slow anything down?**
+No. Core Animation moves them in the render server, and the app wakes up once a second to read a
+handful of tiny JSON files. The Codex hook adds a few tens of milliseconds to each prompt.
+
+**Can my other agents get beetles too?**
+Only Claude Code and Codex for now. Everyone else will have to roll their own.
+
 ## Known limitations
 
 - A Codex turn that ends in an API error (rate or usage limit) fires no hook; its beetle keeps
@@ -70,3 +112,7 @@ swift run Stercorarius
 - If another Codex `Stop` hook blocks and the turn continues, the beetle leaves early.
 - Claude Code's session registry format is undocumented; an update may need a decoder change.
 - Codex threads loaded before installation do not run the new hooks until restarted.
+
+## License
+
+[MIT](LICENSE) © 2026 BeeCrow LLC, beetle sprites included.

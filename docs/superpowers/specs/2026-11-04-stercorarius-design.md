@@ -163,7 +163,7 @@ Codex uses `chatgpt-codex.{png,json}`.
 2. Edits `$CODEX_HOME/hooks.json` (default `~/.codex/hooks.json`) with `/usr/bin/jq`:
    - Backs the file up to `hooks.json.stercorarius-<timestamp>-<pid>.bak` before any change.
    - Touches only the `.hooks.<Event>` arrays and never adds other top-level keys. Codex rejects
-     the entire file if it has an unknown top-level key, which would also disable Superset's hooks.
+     the entire file if it has an unknown top-level key, which would also disable other tools' hooks.
    - Recognises its own handlers by their exact command shape (a single-quoted path ending in
      `/Stercorarius`, then `codex-hook busy|idle`) and never touches look-alikes.
    - Rewrites its own handlers in place (for example after the app moved) and appends missing
