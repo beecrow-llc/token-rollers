@@ -9,9 +9,9 @@ Codex session that is working right now. (*Geotrupes stercorarius* is the dor be
   `status` of `busy`, `idle` or `waiting`. Stercorarius reads it once a second and never writes to
   `~/.claude`.
 - **Codex** runs desktop threads and TUI sessions inside shared app-server processes, so
-  Stercorarius registers Codex hooks: `UserPromptSubmit` runs `Stercorarius codex-hook busy`;
-  `Stop`, `Interrupt` and `SessionEnd` run `Stercorarius codex-hook idle`. The hook keeps one file
-  per working session in `~/.stercorarius/codex/`.
+  Stercorarius registers Codex hooks: `UserPromptSubmit` runs `'…/Stercorarius' codex-hook busy`;
+  `Stop`, `Interrupt` and `SessionEnd` run `'…/Stercorarius' codex-hook idle`. The hook keeps one
+  file per working session in `~/.stercorarius/codex/`.
 - Each working session gets a beetle. It fades in at a random point, heading a random way, then
   crosses a random display at a random height: left to right, then mirrored right to left. It
   stays above all windows on every Space and lets clicks through. When the session stops
@@ -41,7 +41,8 @@ make uninstall
 ```
 
 Quits the app, removes its hooks from `~/.codex/hooks.json` (with a backup), and moves the app and
-`~/.stercorarius` to the Trash.
+`~/.stercorarius` to the Trash. Restart Codex sessions and ChatGPT.app afterwards: threads that are
+already loaded keep calling the removed hooks.
 
 ## Sprites
 

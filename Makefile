@@ -25,12 +25,12 @@ quit:
 	@if pgrep -xq $(APP_NAME); then osascript -e 'quit app "$(APP_NAME)"'; fi
 
 install: app quit
-	mkdir -p $(HOME)/Applications
-	ditto $(BUILT_APP) $(INSTALLED_APP)
-	Scripts/codex-hooks.sh install $(BINARY)
-	open $(INSTALLED_APP)
+	mkdir -p "$(HOME)/Applications"
+	ditto "$(BUILT_APP)" "$(INSTALLED_APP)"
+	Scripts/codex-hooks.sh install "$(BINARY)"
+	open "$(INSTALLED_APP)"
 
 uninstall: quit
-	Scripts/codex-hooks.sh uninstall $(BINARY)
-	if [ -d $(INSTALLED_APP) ]; then trash $(INSTALLED_APP); fi
-	if [ -d $(HOME)/.stercorarius ]; then trash $(HOME)/.stercorarius; fi
+	Scripts/codex-hooks.sh uninstall "$(BINARY)"
+	if [ -d "$(INSTALLED_APP)" ]; then trash "$(INSTALLED_APP)"; fi
+	if [ -d "$(HOME)/.stercorarius" ]; then trash "$(HOME)/.stercorarius"; fi
