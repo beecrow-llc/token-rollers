@@ -25,12 +25,15 @@ final class Walker {
         layer.minificationFilter = .trilinear
     }
 
-    /// Applies the stage's current scale; the next pass plans its path with the new size.
+    /// Applies the stage's current scale and restarts the beetle at a random point, because the
+    /// running pass was planned for the old size.
     func resize() {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         layer.bounds = CGRect(origin: .zero, size: size)
         CATransaction.commit()
+        layer.removeAnimation(forKey: "move")
+        start()
     }
 
     /// Fades in at a random point of a pass in a random direction, so beetles that start

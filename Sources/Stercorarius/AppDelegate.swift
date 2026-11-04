@@ -34,9 +34,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.stage = stage
         statusItem = makeStatusItem(size: size)
         refresh()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
         }
+        // Common modes keep polling while the status menu is open (event-tracking mode).
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
     }
 
     private func refresh() {
