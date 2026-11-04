@@ -1,0 +1,28 @@
+{
+  "name": "Dung Beetle Coding Agents — Realistic",
+  "version": 2,
+  "variants": [
+    {
+      "vendor": "Claude Code",
+      "atlas": "claude-code.png",
+      "metadata": "claude-code.json",
+      "nativeFramePx": 442,
+      "displayPtAt2x": 221,
+      "frames": 8
+    },
+    {
+      "vendor": "ChatGPT Codex",
+      "atlas": "chatgpt-codex.png",
+      "metadata": "chatgpt-codex.json",
+      "nativeFramePx": 442,
+      "displayPtAt2x": 221,
+      "frames": 8
+    }
+  ],
+  "displayLimitPt": 256,
+  "defaultDisplaySizePt": 221,
+  "loopFps": 10,
+  "loopDurationMs": 800,
+  "preview": "preview.html",
+  "style": "realistic"
+}

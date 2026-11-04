@@ -1,0 +1,16 @@
+included:
+  - Package.swift
+  - Sources
+  - Tests
+disabled_rules:
+  - trailing_comma # swift-format adds trailing commas to multi-line collections
+  - opening_brace # swift-format puts `{` on its own line after wrapped signatures and conditions
+line_length:
+  warning: 100
+identifier_name:
+  excluded:
+    - x
+    - y
+    - w
+    - h
+    - id

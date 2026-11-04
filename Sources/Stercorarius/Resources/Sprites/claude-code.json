@@ -1,0 +1,305 @@
+{
+  "frames": {
+    "roll_00": {
+      "frame": {
+        "x": 1,
+        "y": 1,
+        "w": 442,
+        "h": 442
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 442,
+        "h": 442
+      },
+      "sourceSize": {
+        "w": 442,
+        "h": 442
+      },
+      "durationMs": 100,
+      "anchorPx": {
+        "x": 221,
+        "y": 372
+      },
+      "renderOffsetPx": {
+        "x": 0,
+        "y": 1
+      }
+    },
+    "roll_01": {
+      "frame": {
+        "x": 444,
+        "y": 1,
+        "w": 442,
+        "h": 442
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 442,
+        "h": 442
+      },
+      "sourceSize": {
+        "w": 442,
+        "h": 442
+      },
+      "durationMs": 100,
+      "anchorPx": {
+        "x": 221,
+        "y": 372
+      },
+      "renderOffsetPx": {
+        "x": 0,
+        "y": 1
+      }
+    },
+    "roll_02": {
+      "frame": {
+        "x": 888,
+        "y": 1,
+        "w": 442,
+        "h": 442
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 442,
+        "h": 442
+      },
+      "sourceSize": {
+        "w": 442,
+        "h": 442
+      },
+      "durationMs": 100,
+      "anchorPx": {
+        "x": 221,
+        "y": 372
+      },
+      "renderOffsetPx": {
+        "x": 0,
+        "y": 1
+      }
+    },
+    "roll_03": {
+      "frame": {
+        "x": 1331,
+        "y": 1,
+        "w": 442,
+        "h": 442
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 442,
+        "h": 442
+      },
+      "sourceSize": {
+        "w": 442,
+        "h": 442
+      },
+      "durationMs": 100,
+      "anchorPx": {
+        "x": 221,
+        "y": 369
+      },
+      "renderOffsetPx": {
+        "x": 0,
+        "y": 4
+      }
+    },
+    "roll_04": {
+      "frame": {
+        "x": 1,
+        "y": 444,
+        "w": 442,
+        "h": 442
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 442,
+        "h": 442
+      },
+      "sourceSize": {
+        "w": 442,
+        "h": 442
+      },
+      "durationMs": 100,
+      "anchorPx": {
+        "x": 221,
+        "y": 374
+      },
+      "renderOffsetPx": {
+        "x": 0,
+        "y": -1
+      }
+    },
+    "roll_05": {
+      "frame": {
+        "x": 444,
+        "y": 444,
+        "w": 442,
+        "h": 442
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 442,
+        "h": 442
+      },
+      "sourceSize": {
+        "w": 442,
+        "h": 442
+      },
+      "durationMs": 100,
+      "anchorPx": {
+        "x": 221,
+        "y": 374
+      },
+      "renderOffsetPx": {
+        "x": 0,
+        "y": -1
+      }
+    },
+    "roll_06": {
+      "frame": {
+        "x": 888,
+        "y": 444,
+        "w": 442,
+        "h": 442
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 442,
+        "h": 442
+      },
+      "sourceSize": {
+        "w": 442,
+        "h": 442
+      },
+      "durationMs": 100,
+      "anchorPx": {
+        "x": 221,
+        "y": 374
+      },
+      "renderOffsetPx": {
+        "x": 0,
+        "y": -1
+      }
+    },
+    "roll_07": {
+      "frame": {
+        "x": 1331,
+        "y": 444,
+        "w": 442,
+        "h": 442
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 442,
+        "h": 442
+      },
+      "sourceSize": {
+        "w": 442,
+        "h": 442
+      },
+      "durationMs": 100,
+      "anchorPx": {
+        "x": 221,
+        "y": 374
+      },
+      "renderOffsetPx": {
+        "x": 0,
+        "y": -1
+      }
+    }
+  },
+  "animations": {
+    "move_right": {
+      "frames": [
+        "roll_00",
+        "roll_01",
+        "roll_02",
+        "roll_03",
+        "roll_04",
+        "roll_05",
+        "roll_06",
+        "roll_07"
+      ],
+      "fps": 10,
+      "loop": true,
+      "flipX": false
+    },
+    "move_left": {
+      "frames": [
+        "roll_00",
+        "roll_01",
+        "roll_02",
+        "roll_03",
+        "roll_04",
+        "roll_05",
+        "roll_06",
+        "roll_07"
+      ],
+      "fps": 10,
+      "loop": true,
+      "flipX": true
+    }
+  },
+  "meta": {
+    "image": "claude-code.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 1774,
+      "h": 887
+    },
+    "pixelRatio": 2,
+    "frameSizePx": {
+      "w": 442,
+      "h": 442
+    },
+    "recommendedDisplaySizePt": {
+      "w": 221,
+      "h": 221
+    },
+    "maximumNativeRetinaDisplaySizePt": {
+      "w": 221,
+      "h": 221
+    },
+    "groundPx": 373,
+    "frameOrder": "row-major, top-left origin",
+    "vendorStyle": "Claude Code",
+    "paletteInterpretation": [
+      "#A65F37",
+      "#6B3927",
+      "#39251F"
+    ],
+    "notes": [
+      "Use explicit frame rectangles: the original atlas does not have an integer-width uniform 4x2 grid.",
+      "Apply renderOffsetPx scaled by displaySizePt/442 to normalize the ground baseline.",
+      "Keep frame order forward when moving left; mirror the entire beetle plus ball.",
+      "Illustrated ball rotation is stylized, not physically locked to travel speed.",
+      "Insect faces away from the ball and walks backward while pushing with its hind legs. Move-right refers to travel, not head direction."
+    ],
+    "artStyle": "realistic macro-photography inspired"
+  }
+}

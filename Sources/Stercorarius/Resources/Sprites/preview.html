@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Реалістичні жуки — Claude Code та ChatGPT Codex</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #292b2c;
+      background: #eeede8;
+      font-synthesis: none;
+      --line: #dcdcd5;
+      --muted: #71736f;
+      --accent: #356b58;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 280px; }
+    button, input { font: inherit; }
+    button { cursor: pointer; touch-action: manipulation; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid #7aaf9a;
+      outline-offset: 4px;
+    }
+    main { width: min(1120px, 100%); margin: 0 auto; padding: 34px 24px 28px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 25px; }
+    .eyebrow { margin: 0 0 7px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    h1 { margin: 0; font-size: clamp(27px, 4vw, 37px); font-weight: 650; letter-spacing: -.045em; line-height: 1.14; }
+    .intro { margin: 9px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .retina { flex: none; padding: 10px 13px; border: 1px solid #cfd6cc; border-radius: 12px; color: #4e6656; font-size: 12px; font-weight: 650; background: #e7ece2; }
+    .panel { background: #fafaf6; border: 1px solid var(--line); border-radius: 18px; }
+    .controls { padding: 18px 20px 16px; margin-bottom: 20px; }
+    .sliders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+    .slider-label { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 600; }
+    output { color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    input[type="range"] { display: block; width: 100%; margin: 12px 0 0; accent-color: var(--accent); cursor: pointer; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e6e7e0; }
+    .playback, .background-control { display: flex; align-items: center; gap: 8px; }
+    .action { min-height: 36px; border: 1px solid #d7dbd2; border-radius: 9px; padding: 8px 12px; color: #36413a; background: #f3f5ef; font-size: 12px; font-weight: 600; }
+    .action:hover { background: #e9eee3; border-color: #bac5b7; }
+    .action.primary { color: #f8faf7; background: #346650; border-color: #346650; min-width: 92px; }
+    .action.primary:hover { background: #28523e; }
+    .frame-counter { min-width: 96px; margin-left: 3px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .small-label { color: var(--muted); font-size: 12px; margin-right: 4px; }
+    .background-options { display: inline-flex; padding: 3px; gap: 3px; border: 1px solid #dcded5; border-radius: 10px; background: #efefe9; }
+    .background-options button { border: 0; border-radius: 7px; background: transparent; color: #71756c; padding: 6px 9px; font-size: 11px; font-weight: 600; min-height: 28px; }
+    .background-options button[aria-pressed="true"] { background: #fff; color: #313d32; box-shadow: 0 1px 4px #20332415; }
+    .background-options button:hover { color: #254733; }
+    .lanes { display: grid; gap: 16px; }
+    .lane { overflow: hidden; }
+    .lane-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 18px; border-bottom: 1px solid var(--line); }
+    .vendor { display: flex; align-items: center; gap: 9px; }
+    .vendor-dot { display: inline-block; width: 10px; height: 10px; border-radius: 4px; background: #956540; box-shadow: 0 0 0 4px #95654012; }
+    .codex .vendor-dot { background: #35664d; box-shadow: 0 0 0 4px #35664d12; }
+    h2 { margin: 0; font-size: 13px; font-weight: 650; }
+    .direction { color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .stage { position: relative; overflow: hidden; background: #f3f1eb; }
+    .stage[data-background="dark"] { background: #171c22; }
+    .stage[data-background="checker"] {
+      background-color: #f6f7f5;
+      background-image: linear-gradient(45deg, #e1e5df 25%, transparent 25%), linear-gradient(-45deg, #e1e5df 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e1e5df 75%), linear-gradient(-45deg, transparent 75%, #e1e5df 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+    }
+    canvas { display: block; width: 100%; height: 253px; }
+    .stage-message { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; margin: 0; padding: 30px; color: #686f65; text-align: center; font-size: 13px; line-height: 1.7; background: #f3f1ebed; }
+    .stage-message[hidden] { display: none; }
+    .stage-message.error { color: #9d4937; }
+    .lane-footer { display: flex; justify-content: space-between; gap: 14px; padding: 9px 18px; border-top: 1px solid var(--line); font-size: 10px; color: #85877f; font-variant-numeric: tabular-nums; }
+    .load-status { color: #647660; }
+    .load-status.error { color: #a25443; }
+    .notes { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; margin-top: 18px; color: #82857c; font-size: 11px; line-height: 1.7; }
+    .notes p { margin: 0; }
+    .keyboard { white-space: nowrap; text-align: right; }
+    kbd { font: inherit; padding: 1px 5px; background: #f6f6f0; border: 1px solid #dddfd5; border-radius: 4px; color: #656c5f; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    @media (max-width: 660px) {
+      main { padding: 24px 14px; }
+      header { align-items: flex-start; gap: 10px; }
+      .retina { padding: 8px 10px; font-size: 10px; }
+      .controls { padding: 16px; }
+      .sliders { grid-template-columns: 1fr; gap: 18px; }
+      .toolbar { align-items: flex-start; gap: 14px; }
+      .playback { flex-wrap: wrap; }
+      .background-control { margin-left: 0; }
+      .notes { display: block; }
+      .keyboard { text-align: left; margin-top: 8px !important; }
+      .lane-footer { flex-wrap: wrap; gap: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">Реалістична версія · перегляд спрайтів</p>
+        <h1>Жуки на роботі</h1>
+        <p class="intro">Мідний хітин Claude. Темний із зеленим відливом Codex. Та сама відповідальна кулька.</p>
+      </div>
+      <span class="retina">Retina · @2x</span>
+    </header>
+
+    <section class="controls panel" aria-label="Налаштування анімації">
+      <div class="sliders">
+        <div>
+          <label class="slider-label" for="size">Розмір <output id="size-value" for="size">221 × 221 pt</output></label>
+          <input id="size" type="range" min="128" max="221" step="1" value="221" aria-describedby="size-description">
+          <span id="size-description" class="visually-hidden">Від 128 до 221 поінта; нативний кадр — 442 на 442 пікселі.</span>
+        </div>
+        <div>
+          <label class="slider-label" for="fps">Частота кадрів <output id="fps-value" for="fps">10 кадрів/с</output></label>
+          <input id="fps" type="range" min="6" max="16" step="1" value="10">
+        </div>
+        <div>
+          <label class="slider-label" for="speed">Швидкість руху <output id="speed-value" for="speed">100 pt/с</output></label>
+          <input id="speed" type="range" min="40" max="220" step="1" value="100">
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="playback">
+          <button class="action primary" type="button" id="play-pause">Пауза</button>
+          <button class="action" type="button" id="step" title="Зупинити та перейти до наступного кадру">Наступний кадр</button>
+          <span class="frame-counter" id="frame-counter">Кадр 01 / 08</span>
+        </div>
+        <div class="background-control">
+          <span class="small-label" id="background-label">Тло</span>
+          <div class="background-options" role="group" aria-labelledby="background-label">
+            <button type="button" data-background="light" aria-pressed="true">Світле</button>
+            <button type="button" data-background="dark" aria-pressed="false">Темне</button>
+            <button type="button" data-background="checker" aria-pressed="false">Сітка</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="lanes">
+      <section class="lane panel claude" aria-labelledby="claude-title">
+        <div class="lane-heading">
+          <div class="vendor"><span class="vendor-dot" aria-hidden="true"></span><h2 id="claude-title">Claude Code</h2></div>
+          <span class="direction" id="claude-direction">Рух вправо →</span>
+        </div>
+        <div class="stage" data-background="light">
+          <canvas id="claude-canvas" aria-label="Реалістичний гнойовий жук Claude Code з бронзово-мідним хітином котить кульку та змінює напрямок біля країв."></canvas>
+          <p class="stage-message" id="claude-message" role="status">Завантаження claude-code.png…</p>
+        </div>
+        <div class="lane-footer"><span>442 × 442 px / кадр · 8 кадрів</span><span class="load-status" id="claude-status">Завантаження PNG…</span></div>
+      </section>
+
+      <section class="lane panel codex" aria-labelledby="codex-title">
+        <div class="lane-heading">
+          <div class="vendor"><span class="vendor-dot" aria-hidden="true"></span><h2 id="codex-title">ChatGPT Codex</h2></div>
+          <span class="direction" id="codex-direction">← Рух вліво</span>
+        </div>
+        <div class="stage" data-background="light">
+          <canvas id="codex-canvas" aria-label="Реалістичний темний гнойовий жук ChatGPT Codex із зеленуватим металевим відливом котить кульку та змінює напрямок біля країв."></canvas>
+          <p class="stage-message" id="codex-message" role="status">Завантаження chatgpt-codex.png…</p>
+        </div>
+        <div class="lane-footer"><span>442 × 442 px / кадр · 8 кадрів</span><span class="load-status" id="codex-status">Завантаження PNG…</span></div>
+      </section>
+    </div>
+
+    <footer class="notes">
+      <p>Цикли з 8 намальованих фаз руху. Обертання кульки не прив’язане до швидкості руху.<br>221 pt = 442 px при @2x. PNG мають лежати поруч із цим файлом.</p>
+      <p class="keyboard"><kbd>Пробіл</kbd> пауза · <kbd>→</kbd> наступний кадр</p>
+    </footer>
+    <noscript><p>Для перегляду анімації увімкни JavaScript у браузері.</p></noscript>
+  </main>
+
+  <script>
+  (() => {
+    'use strict';
+
+    const SOURCE_SIZE = 442;
+    const SOURCE_X = [1, 444, 888, 1331];
+    const SOURCE_Y = [1, 444];
+    const TARGET_GROUND = 373;
+    const FRAME_COUNT = 8;
+    const EXPECTED_ATLAS = { width: 1774, height: 887 };
+    const byId = id => document.getElementById(id);
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const state = {
+      size: 221,
+      fps: 10,
+      speed: 100,
+      frame: 0,
+      accumulator: 0,
+      playing: !reducedMotion.matches,
+      background: 'light'
+    };
+
+    let dirty = true;
+    let previousTimestamp = null;
+    let pixelRatio = window.devicePixelRatio || 1;
+
+    const tracks = [
+      {
+        key: 'claude',
+        file: 'claude-code.png',
+        initialDirection: 1,
+        ground: [372, 372, 372, 369, 374, 374, 374, 374]
+      },
+      {
+        key: 'codex',
+        file: 'chatgpt-codex.png',
+        initialDirection: -1,
+        ground: [372, 370, 371, 368, 373, 373, 374, 373]
+      }
+    ].map(config => {
+      const canvas = byId(config.key + '-canvas');
+      return {
+        ...config,
+        canvas,
+        context: canvas.getContext('2d'),
+        message: byId(config.key + '-message'),
+        status: byId(config.key + '-status'),
+        directionLabel: byId(config.key + '-direction'),
+        image: new Image(),
+        ready: false,
+        initialized: false,
+        x: 0,
+        direction: config.initialDirection,
+        width: 0,
+        height: 0,
+        padding: 20,
+        span: 0
+      };
+    });
+
+    function showError(track, message) {
+      track.ready = false;
+      track.message.hidden = false;
+      track.message.textContent = message;
+      track.message.classList.add('error');
+      track.status.textContent = 'Помилка завантаження';
+      track.status.classList.add('error');
+      dirty = true;
+    }
+
+    function resizeAll() {
+      pixelRatio = window.devicePixelRatio || 1;
+      for (const track of tracks) {
+        const fraction = track.initialized && track.span > 0
+          ? Math.max(0, Math.min(1, track.x / track.span))
+          : (track.initialDirection > 0 ? 0 : 1);
+        track.height = state.size + 32;
+        track.canvas.style.height = track.height + 'px';
+        track.width = track.canvas.getBoundingClientRect().width;
+        track.padding = Math.min(20, Math.max(0, (track.width - state.size) / 2));
+        track.span = Math.max(0, track.width - state.size - 2 * track.padding);
+        track.x = fraction * track.span;
+        track.initialized = true;
+        track.canvas.width = Math.max(1, Math.round(track.width * pixelRatio));
+        track.canvas.height = Math.max(1, Math.round(track.height * pixelRatio));
+        if (track.context) {
+          track.context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+          track.context.imageSmoothingEnabled = true;
+          track.context.imageSmoothingQuality = 'high';
+        }
+      }
+      dirty = true;
+    }
+
+    function syncPlaybackControls() {
+      byId('play-pause').textContent = state.playing ? 'Пауза' : 'Відтворити';
+      byId('play-pause').setAttribute('aria-label', state.playing ? 'Призупинити анімацію' : 'Відтворити анімацію');
+      byId('frame-counter').textContent = 'Кадр ' + String(state.frame + 1).padStart(2, '0') + ' / 08';
+    }
+
+    function togglePlayback() {
+      state.playing = !state.playing;
+      previousTimestamp = null;
+      syncPlaybackControls();
+      dirty = true;
+    }
+
+    function stepFrame() {
+      state.playing = false;
+      state.accumulator = 0;
+      state.frame = (state.frame + 1) % FRAME_COUNT;
+      previousTimestamp = null;
+      syncPlaybackControls();
+      dirty = true;
+    }
+
+    function advance(seconds) {
+      state.accumulator += seconds * state.fps;
+      const steps = Math.floor(state.accumulator);
+      if (steps > 0) {
+        state.frame = (state.frame + steps) % FRAME_COUNT;
+        state.accumulator -= steps;
+        syncPlaybackControls();
+      }
+      for (const track of tracks) {
+        if (!track.ready || track.span <= 0) continue;
+        // Reflect the continuous position at either edge, including narrow viewports.
+        const period = 2 * track.span;
+        const distance = track.direction > 0 ? track.x : period - track.x;
+        const phase = (distance + state.speed * seconds) % period;
+        track.x = phase <= track.span ? phase : period - phase;
+        track.direction = phase < track.span ? 1 : -1;
+      }
+    }
+
+    function drawAll() {
+      const frame = state.frame;
+      const sx = SOURCE_X[frame % 4];
+      const sy = SOURCE_Y[Math.floor(frame / 4)];
+      for (const track of tracks) {
+        const ctx = track.context;
+        if (!ctx) continue;
+        ctx.clearRect(0, 0, track.width, track.height);
+        if (!track.ready) continue;
+
+        // Stabilize the feet/ball baseline without modifying the source PNG.
+        const groundOffset = (TARGET_GROUND - track.ground[frame]) * state.size / SOURCE_SIZE;
+        const y = (track.height - state.size) / 2 + groundOffset;
+        const x = track.padding + track.x;
+        ctx.save();
+        ctx.translate(x + (track.direction < 0 ? state.size : 0), y);
+        if (track.direction < 0) ctx.scale(-1, 1);
+        // Frame order always runs forward. Only the rendered image is mirrored.
+        ctx.drawImage(track.image, sx, sy, SOURCE_SIZE, SOURCE_SIZE, 0, 0, state.size, state.size);
+        ctx.restore();
+
+        const directionText = track.direction > 0 ? 'Рух вправо →' : '← Рух вліво';
+        if (track.directionLabel.textContent !== directionText) {
+          track.directionLabel.textContent = directionText;
+        }
+      }
+      dirty = false;
+    }
+
+    function tick(timestamp) {
+      const actualRatio = window.devicePixelRatio || 1;
+      if (actualRatio !== pixelRatio) resizeAll();
+      const seconds = previousTimestamp === null ? 0 : Math.min(0.05, Math.max(0, (timestamp - previousTimestamp) / 1000));
+      previousTimestamp = timestamp;
+      if (state.playing) {
+        advance(seconds);
+        drawAll();
+      } else if (dirty) {
+        drawAll();
+      }
+      window.requestAnimationFrame(tick);
+    }
+
+    byId('size').addEventListener('input', event => {
+      state.size = Number(event.target.value);
+      byId('size-value').textContent = state.size + ' × ' + state.size + ' pt';
+      resizeAll();
+    });
+    byId('fps').addEventListener('input', event => {
+      state.fps = Number(event.target.value);
+      byId('fps-value').textContent = state.fps + ' кадрів/с';
+    });
+    byId('speed').addEventListener('input', event => {
+      state.speed = Number(event.target.value);
+      byId('speed-value').textContent = state.speed + ' pt/с';
+    });
+    byId('play-pause').addEventListener('click', togglePlayback);
+    byId('step').addEventListener('click', stepFrame);
+
+    document.querySelectorAll('.background-options button').forEach(button => {
+      button.addEventListener('click', () => {
+        state.background = button.dataset.background;
+        document.querySelectorAll('.stage').forEach(stage => {
+          stage.dataset.background = state.background;
+        });
+        document.querySelectorAll('.background-options button').forEach(option => {
+          option.setAttribute('aria-pressed', String(option === button));
+        });
+      });
+    });
+
+    window.addEventListener('keydown', event => {
+      const tag = document.activeElement && document.activeElement.tagName;
+      if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(tag) || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (event.code === 'Space') {
+        event.preventDefault();
+        togglePlayback();
+      } else if (event.code === 'ArrowRight') {
+        event.preventDefault();
+        stepFrame();
+      }
+    });
+    document.addEventListener('visibilitychange', () => { previousTimestamp = null; });
+    window.addEventListener('resize', resizeAll);
+    if (typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver(resizeAll);
+      tracks.forEach(track => observer.observe(track.canvas.parentElement));
+    }
+
+    for (const track of tracks) {
+      if (!track.context) {
+        showError(track, 'Цей браузер не підтримує Canvas 2D. Відкрий файл у сучасному браузері.');
+        continue;
+      }
+      track.image.onload = () => {
+        if (track.image.naturalWidth !== EXPECTED_ATLAS.width || track.image.naturalHeight !== EXPECTED_ATLAS.height) {
+          showError(track, track.file + ': очікується атлас 1774 × 887 px, отримано ' + track.image.naturalWidth + ' × ' + track.image.naturalHeight + ' px. Перевір, що поруч лежить правильний PNG.');
+          return;
+        }
+        track.ready = true;
+        track.message.hidden = true;
+        track.status.textContent = 'PNG завантажено · 1774 × 887 px';
+        dirty = true;
+      };
+      track.image.onerror = () => {
+        showError(track, 'Не вдалося відкрити ' + track.file + '. Поклади цей PNG у ту саму папку, що й preview.html, та відкрий сторінку знову.');
+      };
+      // Relative <img> loading works directly from file://; no server or fetch needed.
+      track.image.src = './' + track.file;
+    }
+
+    resizeAll();
+    syncPlaybackControls();
+    window.requestAnimationFrame(tick);
+  })();
+  </script>
+</body>
+</html>
