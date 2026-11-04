@@ -11,11 +11,26 @@ final class Walker {
     private var leftward = Bool.random()
     private var retired = false
 
+    /// On-screen size: the sprite's native size times the stage's scale.
+    private var size: CGSize {
+        CGSize(width: sprite.size.width * stage.scale, height: sprite.size.height * stage.scale)
+    }
+
     init(sprite: SpriteSheet, stage: Stage) {
         self.sprite = sprite
         self.stage = stage
-        layer.bounds = CGRect(origin: .zero, size: sprite.size)
+        layer.bounds = CGRect(origin: .zero, size: size)
         layer.contents = sprite.frames.first?.image
+        // Mipmaps keep the downscaled 442 px frames smooth.
+        layer.minificationFilter = .trilinear
+    }
+
+    /// Applies the stage's current scale; the next pass plans its path with the new size.
+    func resize() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer.bounds = CGRect(origin: .zero, size: size)
+        CATransaction.commit()
     }
 
     /// Fades in at a random point of a pass in a random direction, so beetles that start
@@ -40,7 +55,7 @@ final class Walker {
     private func startPass(progress: CGFloat = 0) {
         guard !retired, let target = stage.randomScreen() else { return }
         let pass = PassPlanner.plan(
-            sprite: sprite.size, screenFrame: target.screen.frame,
+            sprite: size, screenFrame: target.screen.frame,
             visibleFrame: target.screen.visibleFrame, leftward: leftward,
             heightFraction: .random(in: 0...1), progress: progress)
         leftward.toggle()

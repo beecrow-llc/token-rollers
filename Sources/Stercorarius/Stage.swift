@@ -45,6 +45,13 @@ final class Stage {
     private var overlays: [CGDirectDisplayID: Overlay] = [:]
     private var walkers: [Session: Walker] = [:]
 
+    /// Share of each sprite's native size at which beetles are drawn.
+    var scale: CGFloat = 1 {
+        didSet {
+            for walker in walkers.values { walker.resize() }
+        }
+    }
+
     init(sprites: [Agent: SpriteSheet]) {
         self.sprites = sprites
         NotificationCenter.default.addObserver(

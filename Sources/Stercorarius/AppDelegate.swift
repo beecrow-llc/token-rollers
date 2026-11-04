@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return SessionScanner(directories: Dictionary(uniqueKeysWithValues: directories))
     }()
     private let statusLine = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+    private var sizeItems: [NSMenuItem] = []
     private var stage: Stage?
     private var statusItem: NSStatusItem?
     private var timer: Timer?
@@ -27,8 +28,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.terminate(nil)
             return
         }
-        stage = Stage(sprites: sprites)
-        statusItem = makeStatusItem()
+        let size = BeetleSize.saved(in: .standard)
+        let stage = Stage(sprites: sprites)
+        stage.scale = size.rawValue
+        self.stage = stage
+        statusItem = makeStatusItem(size: size)
         refresh()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
@@ -43,12 +47,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .joined(separator: " · ")
     }
 
-    private func makeStatusItem() -> NSStatusItem {
+    private func makeStatusItem(size: BeetleSize) -> NSStatusItem {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.image = NSImage(
             systemSymbolName: "ladybug.fill", accessibilityDescription: "Stercorarius")
         let menu = NSMenu()
         menu.addItem(statusLine)
+        menu.addItem(.separator())
+        menu.addItem(makeSizeMenu(checked: size))
         menu.addItem(.separator())
         menu.addItem(
             NSMenuItem(
@@ -56,5 +62,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 keyEquivalent: "q"))
         item.menu = menu
         return item
+    }
+
+    /// The "Beetle Size" submenu, with `checked` ticked.
+    private func makeSizeMenu(checked: BeetleSize) -> NSMenuItem {
+        let submenu = NSMenu()
+        for size in BeetleSize.allCases {
+            let item = NSMenuItem(
+                title: size.title, action: #selector(chooseSize(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = size.rawValue
+            item.state = size == checked ? .on : .off
+            submenu.addItem(item)
+            sizeItems.append(item)
+        }
+        let parent = NSMenuItem(title: "Beetle Size", action: nil, keyEquivalent: "")
+        parent.submenu = submenu
+        return parent
+    }
+
+    @objc private func chooseSize(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? Double, let size = BeetleSize(rawValue: raw)
+        else { return }
+        size.save(in: .standard)
+        stage?.scale = size.rawValue
+        for item in sizeItems { item.state = item === sender ? .on : .off }
     }
 }

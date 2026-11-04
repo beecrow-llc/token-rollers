@@ -15,7 +15,8 @@ that session's beetle fades out.
 ## Non-goals
 
 - No interaction: sprites are click-through, carry no labels, and cannot be clicked.
-- No autostart at login, no settings UI, no sprite hot-reload.
+- No autostart at login, no settings window (the menu offers only the beetle size), no sprite
+  hot-reload.
 - No agents other than Claude Code and Codex.
 
 ## Architecture
@@ -99,7 +100,8 @@ The app scans both directories once per second. A missing directory means no ses
   `[.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]`, so it stays above every
   window on every Space, full-screen apps included. All overlays are rebuilt on
   `NSApplication.didChangeScreenParametersNotification`, and walkers restart their current pass.
-- **Walker.** One `CALayer` per working session, sized to the sprite (221 × 221 pt).
+- **Walker.** One `CALayer` per working session, sized to the sprite times the chosen beetle size
+  (see Sprites).
   - Frames: a `CAKeyframeAnimation` on `contents` with `calculationMode = .discrete`, per-frame
     durations from the sprite metadata, repeating forever.
   - Movement: a linear `CABasicAnimation` on `position` at 100 pt/s.
@@ -130,13 +132,16 @@ Codex uses `chatgpt-codex.{png,json}`.
     so frames cannot be found by dividing its width.
   - Bake `renderOffsetPx` into each frame by drawing it into a transparent frame-sized bitmap shifted
     by the offset (positive y moves the art down). This keeps the ball on a steady ground line.
-  - Display size is frame pixels ÷ `pixelRatio` = 221 pt, which is 1 atlas pixel per Retina pixel.
+  - Native size is frame pixels ÷ `pixelRatio` = 221 pt, which is 1 atlas pixel per Retina pixel.
+- Beetles are drawn at 50% (default), 75% or 100% of the native size. The menu's Beetle Size
+  submenu sets it for all beetles at once, and the choice is saved in user defaults
+  (`beetleScale`). Downscaled frames use trilinear filtering.
 - If a sprite resource is missing or invalid, the app shows an alert with the error and quits.
 
 ## App shell
 
 - Accessory app (`LSUIElement`), so no Dock icon. Its menu-bar item (SF Symbol `ladybug.fill`) shows
-  a disabled status line `Claude N · Codex M` and a `Quit` item.
+  a disabled status line `Claude N · Codex M`, the Beetle Size submenu, and a `Quit` item.
 - Swift 6 with AppKit, QuartzCore, and ImageIO; no third-party dependencies; macOS 15+.
 - A SwiftPM package. The `.app` is assembled by a script, following the sibling project Stone.
 
@@ -177,7 +182,8 @@ Codex uses `chatgpt-codex.{png,json}`.
     exit code.
   - Process helpers: executable path and parent lookup.
   - Sprite loader: a synthetic atlas with a known offset, plus the real bundled pack.
-  - Pass planner geometry and keyframe timing.
+  - Pass planner geometry (including a random start point) and keyframe timing.
+  - Beetle size: default, saved choice, unknown saved value, menu titles.
 - A shell test runs the hooks installer against fixture `hooks.json` files in a temporary
   `CODEX_HOME`. It checks:
   - groups are appended at the end and existing groups and keys are untouched;
