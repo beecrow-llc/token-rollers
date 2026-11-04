@@ -51,10 +51,19 @@ struct SpriteSheet {
 extension SpriteSheet {
     /// The sprite bundled for `agent`.
     static func bundled(for agent: Agent) throws -> SpriteSheet {
-        guard let directory = Bundle.module.url(forResource: "Sprites", withExtension: nil) else {
-            throw LoadError.unreadableAtlas(Bundle.module.bundleURL.appending(path: "Sprites"))
+        let resources = resourceBundle
+        guard let directory = resources.url(forResource: "Sprites", withExtension: nil) else {
+            throw LoadError.unreadableAtlas(resources.bundleURL.appending(path: "Sprites"))
         }
         return try load(name: agent.spriteName, in: directory)
+    }
+
+    /// The package's resource bundle. In the .app it sits in Contents/Resources, where SwiftPM's
+    /// generated `Bundle.module` does not look: it would fall back to the absolute path of the
+    /// repository's .build directory. So the copy next to the executable comes first.
+    private static var resourceBundle: Bundle {
+        Bundle.main.url(forResource: "Stercorarius_Stercorarius", withExtension: "bundle")
+            .flatMap(Bundle.init(url:)) ?? Bundle.module
     }
 
     /// Loads `<name>.json` and `<name>.png` from `directory` and cuts the `move_right` frames.
