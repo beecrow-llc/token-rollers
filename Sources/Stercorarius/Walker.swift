@@ -8,7 +8,7 @@ final class Walker {
     private unowned let stage: Stage
     private let layer = CALayer()
     private var overlay: Overlay?
-    private var leftward = false
+    private var leftward = Bool.random()
     private var retired = false
 
     init(sprite: SpriteSheet, stage: Stage) {
@@ -18,7 +18,12 @@ final class Walker {
         layer.contents = sprite.frames.first?.image
     }
 
-    func start() { startPass() }
+    /// Fades in at a random point of a pass in a random direction, so beetles that start
+    /// together spread out.
+    func start() {
+        startPass(progress: .random(in: 0..<1))
+        fade(from: 0, to: 1)
+    }
 
     /// Abandons the current pass (its display may be gone) and starts a new one.
     func restartPass() {
@@ -29,22 +34,15 @@ final class Walker {
     /// Fades the beetle out, then removes it.
     func retire() {
         retired = true
-        let fade = CABasicAnimation(keyPath: "opacity")
-        fade.fromValue = 1
-        fade.toValue = 0
-        fade.duration = 0.3
-        // CAAnimation retains its delegate, which keeps this walker alive until the fade ends.
-        fade.delegate = AnimationEnd { self.remove() }
-        layer.opacity = 0
-        layer.add(fade, forKey: "fade")
+        fade(from: layer.presentation()?.opacity ?? 1, to: 0) { self.remove() }
     }
 
-    private func startPass() {
+    private func startPass(progress: CGFloat = 0) {
         guard !retired, let target = stage.randomScreen() else { return }
         let pass = PassPlanner.plan(
             sprite: sprite.size, screenFrame: target.screen.frame,
             visibleFrame: target.screen.visibleFrame, leftward: leftward,
-            heightFraction: .random(in: 0...1))
+            heightFraction: .random(in: 0...1), progress: progress)
         leftward.toggle()
 
         CATransaction.begin()
@@ -75,7 +73,26 @@ final class Walker {
         animation.duration = sprite.cycleDuration
         animation.calculationMode = .discrete
         animation.repeatCount = .infinity
+        // A random phase keeps beetles that start together from stepping in unison.
+        animation.timeOffset = .random(in: 0..<sprite.cycleDuration)
         return animation
+    }
+
+    /// Animates opacity from `start` to `end` over 0.3 s, then runs `completion`.
+    private func fade(
+        from start: Float, to end: Float, completion: (@MainActor () -> Void)? = nil
+    ) {
+        let fade = CABasicAnimation(keyPath: "opacity")
+        fade.fromValue = start
+        fade.toValue = end
+        fade.duration = 0.3
+        // CAAnimation retains its delegate, which keeps this walker alive until the fade ends.
+        fade.delegate = completion.map { AnimationEnd($0) }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer.opacity = end
+        CATransaction.commit()
+        layer.add(fade, forKey: "fade")
     }
 
     private func remove() {

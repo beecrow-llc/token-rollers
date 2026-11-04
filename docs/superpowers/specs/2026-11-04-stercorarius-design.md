@@ -5,9 +5,10 @@ Date: 2026-11-04. Status: design approved in chat; this document is the written 
 ## Goal
 
 A lightweight native macOS menu-bar app. While a Claude Code or OpenAI Codex session is working on
-a turn, one animated dung beetle per session rolls its ball across the screen above all windows:
-left to right, then mirrored right to left, each pass on a random display at a random height.
-When the turn ends, that session's beetle fades out.
+a turn, one animated dung beetle per session rolls its ball across the screen above all windows.
+It fades in at a random point, heading a random way, then keeps crossing: left to right, then
+mirrored right to left, each pass on a random display at a random height. When the turn ends,
+that session's beetle fades out.
 
 *Geotrupes stercorarius* is the dor beetle, a dung beetle — hence the name.
 
@@ -103,13 +104,15 @@ The app scans both directories once per second. A missing directory means no ses
     durations from the sprite metadata, repeating forever.
   - Movement: a linear `CABasicAnimation` on `position` at 100 pt/s.
   - The render server runs both animations, so the app does no per-frame work.
-- **Passes.** The first pass goes left to right; directions then alternate. Each pass picks a random
-  display and a random height that keeps the sprite inside that display's `visibleFrame`, which
-  excludes the menu bar and the Dock. The sprite starts fully past one edge and ends fully past the
-  other. Leftward passes mirror the layer (`scaleX = -1`) and keep the frame order, so beetle and ball
-  are mirrored together.
+- **Passes.** Each pass picks a random display and a random height that keeps the sprite inside
+  that display's `visibleFrame`, which excludes the menu bar and the Dock. A pass runs from fully
+  past one edge to fully past the other; directions alternate. Leftward passes mirror the layer
+  (`scaleX = -1`) and keep the frame order, so beetle and ball are mirrored together.
+- **Starting.** A new walker begins at a random point of its first pass, in a random direction, and
+  fades in over 0.3 s. Its walk cycle starts at a random phase. Beetles that start together, such
+  as when the app launches during several busy sessions, therefore do not move in step.
 - **Ending.** When its session stops working, the walker fades out over 0.3 s and is removed. A
-  session that starts working again gets a new walker entering from the left.
+  session that starts working again gets a new walker.
 
 ## Sprites
 
