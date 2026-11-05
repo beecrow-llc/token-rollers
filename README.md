@@ -2,6 +2,10 @@
 
 > Somebody has to roll it.
 
+![Two copper Claude Code beetles and a green Codex beetle roll their balls across a terminal](docs/demo.gif)
+
+<sub>Three busy sessions, sped up. The terminal is staged; the beetles are not.</sub>
+
 Every day you hand your coding agents the stuff nobody else wants to touch: the 4,000-line
 `utils.js`, the migration that "should only take a minute", the ticket that just says *make it
 work*. Claude Code and Codex quietly pack it into a neat ball and push it somewhere better.
